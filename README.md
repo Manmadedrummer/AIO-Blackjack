@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a custom Blackjack game for a for AzerothCore with Eluna and it uses AIO. The game is hosted by a NPC named Lord Foldemort, and players can interact with the NPC to play Blackjack directly in the game.
+This project implements a custom Blackjack game for a for AzerothCore with Eluna and it uses AIO. The game is hosted by a NPC named Lord Foldemort, and players can interact with the NPC to play Blackjack directly in the game. (I also have included Patch-W, which contains the card assets.)
 
 In order to use these modules you will need to have:
 - AzerothCore Server with mod_eluna installed.

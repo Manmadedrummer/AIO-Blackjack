@@ -64,5 +64,6 @@ Make sure any custom assets (like card images and sounds) are placed in the appr
 ### 5. Credits
 
 - **Custom NPC Script:** Manmadedrummer, Araxia Devs
-- **Assets and Sounds:** Custom Assets made by Manmadedrumemr with ChatGPT
+- **Assets:** Custom Assets made by Manmadedrumemr with ChatGPT
+- **Minor Fix** A special thank you to Crow for the minor fix that address the money check for betting and the Play Again button
 - **Annotation in scripts by _ChatGPT (I was too lazy to write them lol)_**

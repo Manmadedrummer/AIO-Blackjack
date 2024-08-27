@@ -1,4 +1,4 @@
---Made by Manmadedrummer for Araxia Server
+--Made by Manmadedrummer for Araxia Server Fix added by Crow
 
 local AIO = AIO or require("AIO")
 
@@ -7,6 +7,21 @@ if AIO.AddAddon() then
 end
 
 local BlackjackHandler = AIO.AddHandlers("Blackjack", {})
+
+-- Constants
+local REQUIRED_GOLD = 500 * 10000  -- 500 gold in copper
+
+-- Function to check if the player has enough gold
+local function CanPlayerAffordGame()
+    return GetMoney() >= REQUIRED_GOLD
+end
+
+local REQUIRED_BET_GOLD = 200 * 10000  -- 200 gold in copper
+
+-- Function to check if the player has enough gold for the bet
+local function CanPlayerAffordBet()
+    return GetMoney() >= REQUIRED_BET_GOLD
+end
 
 -- Declare buttons and game state variables at the top to avoid nil errors
 local drawButton, standButton, betButton, playAgainButton
@@ -298,14 +313,25 @@ local function CreateBlackjackFrame()
             -- Determine the winner and display the result
             local playerTotal = CalculateHandValue(playerHand)
             local dealerTotal = CalculateHandValue(dealerHand)
+            local playerHasBlackjack = #playerHand == 2 and playerTotal == 21
+            local dealerHasBlackjack = #dealerHand == 2 and dealerTotal == 21
 
-            if playerTotal > 21 then
-                print("Player busts! |cffFF0000Dealer wins.|r")
+            if dealerHasBlackjack and not playerHasBlackjack then
+            print("|cffFF0000Dealer wins.|r")
+            elseif dealerHasBlackjack and playerHasBlackjack then
+            print("|cffFF7F00Push, bets are returned. Try again!|r")
+                AIO.Handle("Blackjack", "HandlePlayerWin", currentBet, 1)
+            elseif playerHasBlackjack then
+             print("Player got a BLACKJACK!!!")
+                AIO.Handle("Blackjack", "HandlePlayerWin", currentBet, 3)
+             elseif playerTotal > 21 then
+             print("Player busts! |cffFF0000Dealer wins.|r")
+            elseif playerTotal == dealerTotal then
+                print("|cffFF7F00Push, bets are returned. Try again!|r")
+                AIO.Handle("Blackjack", "HandlePlayerWin", currentBet, 1)
             elseif dealerTotal > 21 or playerTotal > dealerTotal then
                 print("Player wins!")
-                AIO.Handle("Blackjack", "HandlePlayerWin", currentBet)
-            elseif playerTotal == dealerTotal then
-                print("|cffFF7F00It's a tie! Dealer wins.|r")
+                AIO.Handle("Blackjack", "HandlePlayerWin", currentBet, 2)
             else
                 print("|cffFF0000Dealer wins.|r")
             end
@@ -319,8 +345,25 @@ local function CreateBlackjackFrame()
     end
 
     -- Function to handle betting
-    local function PlaceBet()
-        if gameActive and #playerHand == 1 then  -- Allow betting only before drawing the second card
+--    local function PlaceBet()
+--        if gameActive and #playerHand == 1 then  -- Allow betting only before drawing the second card
+--            local betAmount = 200 * 10000  -- 200 gold in copper
+--            currentBet = currentBet + betAmount
+--            betValueText:SetText("Bet: " .. (currentBet / 10000) .. "g")  -- Update bet amount display in gold
+--
+--            -- Deduct the bet amount from the player's money
+--            AIO.Handle("Blackjack", "HandleBet", betAmount)
+--
+--            -- Play the sound when the bet is placed
+--            AIO.Handle("Blackjack", "HandlePlaySound", 895)
+--        else
+--            print("|cffff69b4You can only bet before drawing the second card.|r")
+--        end
+--    end
+
+local function PlaceBet()
+    if gameActive and #playerHand == 1 then  -- Allow betting only before drawing the second card
+        if CanPlayerAffordBet() then
             local betAmount = 200 * 10000  -- 200 gold in copper
             currentBet = currentBet + betAmount
             betValueText:SetText("Bet: " .. (currentBet / 10000) .. "g")  -- Update bet amount display in gold
@@ -331,9 +374,12 @@ local function CreateBlackjackFrame()
             -- Play the sound when the bet is placed
             AIO.Handle("Blackjack", "HandlePlaySound", 895)
         else
-            print("|cffff69b4You can only bet before drawing the second card.|r")
+            print("|cffff7f00You don't have enough gold to place a bet!|r")
         end
+    else
+        print("|cffff69b4You can only bet before drawing the second card.|r")
     end
+end
 
     -- Create a button for drawing a card
     drawButton = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -380,14 +426,19 @@ local function CreateBlackjackFrame()
     playAgainButton:SetPoint("CENTER", frame, "CENTER", 260, -40)
     playAgainButton:SetText("Play Again")
     playAgainButton:SetScript("OnClick", function()
-        if not gameActive then
+    if not gameActive then
+        if CanPlayerAffordGame() then
             AIO.Handle("Blackjack", "HandleStartGame")
             StartNewGame()
         else
-            DisableButtons()
+            print("|cffff7f00You don't have enough gold to play again!|r")
         end
-    end)
-    playAgainButton:Disable()  -- Initially disable the play again button
+    else
+        DisableButtons()
+    end
+end)
+playAgainButton:Disable()
+
 
     -- Start the game for the first time when the frame is shown
     StartNewGame()

@@ -1,10 +1,10 @@
---Made by Manmadedrummer for Araxia Server
+--Made by Manmadedrummer for Araxia Server Minor fix by Crow
 
 local AIO = AIO or require("AIO")
 
--- Register the NPC with ID 1000000
-local NPC_ID = 1000000
+-- Register the NPC with ID 1000000 (1000000 is the original)
 
+local NPC_ID = 1000000
 local BlackjackGame = {}
 
 -- Define the game cost in copper (500 gold)
@@ -72,10 +72,18 @@ function BlackjackGame.HandleDrawCard(player)
 end
 
 -- Handle the player winning
-function BlackjackGame.HandlePlayerWin(player, betAmount)
-    local rewardAmount = betAmount + GAME_COST  -- Add the bet amount and 500 gold
+function BlackjackGame.HandlePlayerWin(player, betAmount, mult)
+    local rewardAmount = (betAmount + GAME_COST) * mult  -- Add the bet amount and 500 gold
     player:ModifyMoney(rewardAmount)
     SendWorldMessage("|cff00ff00" .. player:GetName() .. " wins " .. (rewardAmount / 10000) .. " gold in Blackjack!|r")
+end
+
+-- Function to check if the player has enough money to play again
+function BlackjackGame.CheckPlayerMoney(player)
+    local canPlay = player:GetCoinage() >= GAME_COST
+
+    -- Send the result back to the client
+    AIO.Handle(player, "Blackjack", "ReceiveCanPlayResponse", canPlay)
 end
 
 -- Register the gossip events for the NPC
